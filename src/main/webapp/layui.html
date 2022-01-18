@@ -102,82 +102,120 @@
 
 <script src="layui/layui.js"></script>
 <script>
-    layui.use('table', function () {
+    layui.use('table', function(){
         var table = layui.table;
 
+        // 绝对路径 必须严格按照定义时编写的路径名称一致  并且区分大小写
+        // 接口服务几乎都是定义的绝对路径
+        // 前端页面几乎都是定义的相对路径
+        /*
+           相对路径，首先拼接当前页面的前缀地址，再拼接相对路径地址，就是需要跳转的跳转
+           例如：
+
+                 a页面在  http://localhost:8080/a.html    在此页面定义了一个相对路径为  script src="layui/layui.js"
+                 那么 这个js文件的真实地址就是  http://localhost:8080/layui/layui.js
+
+                 a页面在  http://localhost:8080/x/a.html    在此页面定义了一个相对路径为 script src="layui/layui.js"
+                 那么 这个js文件的真实地址就是  http://localhost:8080/x/layui/layui.js
+
+                 a页面在  http://localhost:8080/x/a.html    在此页面定义了一个相对路径为  script src="./layui/layui.js"
+                 那么 这个js文件的真实地址就是  http://localhost:8080/x/layui/layui.js
+
+                 a页面在  http://localhost:8080/x/a.html    在此页面定义了一个相对路径为  script src="../layui/layui.js"
+                 那么 这个js文件的真实地址就是  http://localhost:8080/layui/layui.js
+
+                 a页面在  http://localhost:8080/x/y/a.html    在此页面定义了一个相对路径为  script src="../../layui/layui.js"
+                 那么 这个js文件的真实地址就是  http://localhost:8080/layui/layui.js
+
+                 在企业规范中，尽可能相对路径不要超过三层，这样可以提升可读性
+
+                 a页面在  http://localhost:8080/x/y/a.html    在此页面定义了一个相对路径为  script src="../../../layui/layui.js"
+                 那么 这个js文件的真实地址就是  http://layui/layui.js   这样的地址是会出错的
+
+                 在前端页面中，绝对路径，都是从webapp开始计算
+                 /index.html
+                 /layui/layui.js
+
+                 把webapp想象成 http://localhost:8080
+         */
         table.render({
             elem: '#test'
-            , url: '/testJSON'
-            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
-            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+            ,url:'/testJSON'         // 相对路径与绝对路径
+            ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+            ,defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
                 title: '提示'
-                , layEvent: 'LAYTABLE_TIPS'
-                , icon: 'layui-icon-tips'
+                ,layEvent: 'LAYTABLE_TIPS'
+                ,icon: 'layui-icon-tips'
             }]
-            , title: '用户数据表'
-            , cols: [[
+            ,title: '用户数据表'
+            ,cols: [[
                 {type: 'checkbox', fixed: 'left'}
-                , {field: 'id', title: 'ID', width: 80, fixed: 'left', unresize: true, sort: true}
-                , {field: 'username', title: '用户名', width: 120, edit: 'text'}
-                , {
-                    field: 'email', title: '邮箱', width: 150, edit: 'text', templet: function (res) {
-                        return '<em>' + res.email + '</em>'
-                    }
-                }
-                , {field: 'sex', title: '性别', width: 80, edit: 'text', sort: true}
-                , {field: 'city', title: '城市', width: 100}
-                , {field: 'sign', title: '签名'}
-                , {field: 'experience', title: '积分', width: 80, sort: true}
-                , {field: 'ip', title: 'IP', width: 120}
-                , {field: 'logins', title: '登入次数', width: 100, sort: true}
-                , {field: 'joinTime', title: '加入时间', width: 120}
-                , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150}
+                ,{title:'ID', width:80, templet: function(data){
+                        return '<em>'+ data.id +'</em>'
+                    }}
+                ,{title:'用户名', width:120, templet: function(data){
+                        return '<em>'+ data.username +'</em>'
+                    }}
+                ,{title:'邮箱', width:150, edit: 'text', templet: function(data){
+                        return '<em>'+ data.email +'</em>'
+                    }}
+                ,{field:'sex', title:'性别', width:80, edit: 'text', sort: true}
+                ,{field:'city', title:'城市', width:100}
+                ,{field:'sign', title:'签名'}
+                ,{field:'experience', title:'积分', width:80, sort: true}
+                ,{field:'ip', title:'IP', width:120}
+                ,{field:'logins', title:'登入次数', width:100, sort: true}
+                ,{field:'joinTime', title:'加入时间', width:120}
+                ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
             ]]
-            , page: true
+            ,page: true
         });
 
         //头工具栏事件
-        table.on('toolbar(test)', function (obj) {
+        table.on('toolbar(test)', function(obj){
             var checkStatus = table.checkStatus(obj.config.id);
-            switch (obj.event) {
+            switch(obj.event){
                 case 'getCheckData':
                     var data = checkStatus.data;
-                    layer.alert(JSON.stringify(data));
+                    // JSON.stringify(data);    // 它的作用是把一个对象(JSONObject   JSONArray)转成字符串形态
+                    // JSON.parse("String");    // 把一个字符串转换成一个对象(JSONObject   JSONArray)
+                    // 上述的两个方法，是隶属于JS原生的，不是LayUI，这两个方法如果转换的对象不是json类型的，那么会抛出错误
+                    // layer.alert(JSON.stringify(data));
+                    console.log(data);         // 此方法是把一个js中的对象或者字符串展示到页面的控制台中
                     break;
                 case 'getCheckLength':
                     var data = checkStatus.data;
-                    layer.msg('选中了：' + data.length + ' 个');
+                    layer.msg('选中了：'+ data.length + ' 个');
                     break;
                 case 'isAll':
-                    layer.msg(checkStatus.isAll ? '全选' : '未全选');
+                    layer.msg(checkStatus.isAll ? '全选': '未全选');
                     break;
 
                 //自定义头工具栏右侧图标 - 提示
                 case 'LAYTABLE_TIPS':
                     layer.alert('这是工具栏右侧自定义的一个图标按钮');
                     break;
-            }
-            ;
+            };
         });
 
         //监听行工具事件
-        table.on('tool(test)', function (obj) {
+        table.on('tool(test)', function(obj){
             var data = obj.data;
             //console.log(obj)
-            if (obj.event === 'del') {
-                layer.confirm('真的删除行么', function (index) {
+            if(obj.event === 'del'){
+                layer.confirm('真的删除行么', function(index){
                     obj.del();
-                    layer.close(layui);
+                    layer.close(index);
                 });
-            } else if (obj.event === 'edit') {
+            } else if(obj.event === 'edit'){
                 layer.prompt({
                     formType: 2
-                    , value: data.email
-                }, function (value, index) {
+                    ,value: data.email
+                }, function(value, index){
                     obj.update({
                         email: value
                     });
-                    layer.close(layui);
+                    layer.close(index);
                 });
             }
         });
